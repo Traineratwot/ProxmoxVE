@@ -101,25 +101,47 @@ class Proxmox {
 	private function requestResource( $actionPath, $params = array(), $method = 'GET') {
 		$url     = $this->getApiUrl() . $actionPath;
 		$cookies = null;
-		$headers = array('verify' => false, 'exceptions' => false);
 
 		if ($this->credentials->isApi()) {
-			$headers['Authorization'] = $this->credentials->getTokenKey();
+			$headers = array(
+				'Authorization' => $this->credentials->getTokenKey()
+			);
 		} else {
-			$cookies                        = CookieJar::fromArray(
+			$cookies = CookieJar::fromArray(
 				array($this->getCookieName() => $this->authToken->getTicket()),
 				$this->credentials->getHostname()
 			);
-			$headers['CSRFPreventionToken'] = $this->authToken->getCsrf();
+			$headers = array(
+				'CSRFPreventionToken' => $this->authToken->getCsrf()
+			);
 		}
 
 		switch (strtoupper( $method )) {
 			case 'GET':
-				return $this->httpClient->get( $url, array('cookies' => $cookies, 'query' => $params) + $headers );
+				return $this->httpClient->get(
+					$url,
+					array(
+						'verify'     => false,
+						'exceptions' => false,
+						'cookies' => $cookies,
+						'query' => $params,
+						'headers' => $headers
+					)
+				);
 			case 'POST':
 			case 'PUT':
 			case 'DELETE':
-				return $this->httpClient->request( $method, $url, array('cookies' => $cookies, 'form_params' => $params) + $headers );
+				return $this->httpClient->request(
+					$method,
+					$url,
+					array(
+						'verify'     => false,
+						'exceptions' => false,
+						'cookies' => $cookies,
+						'form_params' => $params,
+						'headers' => $headers
+					)
+				);
 			default:
 				throw new \InvalidArgumentException( "HTTP Request method {$method} not allowed." );
 		}
