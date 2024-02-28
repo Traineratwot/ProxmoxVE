@@ -1,18 +1,9 @@
 ProxmoxVE API Client
 ====================
 
-This **PHP 5.5+** library allows you to interact with your Proxmox server via API.
+![Proxmox Logo](assets/proxmox-full-lockup-color.png)
 
-[![Build Status](https://travis-ci.org/ZzAntares/ProxmoxVE.svg?branch=master)](https://travis-ci.org/ZzAntares/ProxmoxVE)
-[![Latest Stable Version](https://poser.pugx.org/zzantares/proxmoxve/v/stable.svg)](https://packagist.org/packages/zzantares/proxmoxve)
-[![Total Downloads](https://poser.pugx.org/zzantares/proxmoxve/downloads.svg)](https://packagist.org/packages/zzantares/proxmoxve)
-[![Latest Unstable Version](https://poser.pugx.org/zzantares/proxmoxve/v/unstable.svg)](https://packagist.org/packages/zzantares/proxmoxve)
-[![License](https://poser.pugx.org/zzantares/proxmoxve/license.svg)](https://packagist.org/packages/zzantares/proxmoxve)
-
-> I'm not actively maintaining this library anymore (I've left PHP behind) but **the API is pretty stable**, if it doesn't suit your needs take a look at the forks or better yet create a PR to add the things you're missing, if you're interested I can transfer the project to you.
-
-**Looking for a PHP 5.3 library version?** Search through the [releases](https://github.com/ZzAntares/ProxmoxVE/releases) one that fits your needs, I recommend using the [2.1.1](https://github.com/ZzAntares/ProxmoxVE/releases/tag/v2.1.1) version.
-
+This **PHP 8+** library allows you to interact with your Proxmox server via API.
 
 Installation
 ------------
@@ -22,7 +13,7 @@ Recommended installation is using [Composer], if you do not have [Composer] what
 In the root of your project execute the following:
 
 ```sh
-$ composer require zzantares/proxmoxve ~4.0
+$ composer require triopsi/proxmoxve ~5.0
 ```
 
 Or add this to your `composer.json` file:
@@ -30,7 +21,7 @@ Or add this to your `composer.json` file:
 ```json
 {
     "require": {
-        "zzantares/proxmoxve": "~4.0"
+        "triopsi/proxmoxve": "~5.0"
     }
 }
 ```
@@ -125,7 +116,7 @@ $credentials = [
 Want to know more nifty tricks?
 -------------------------------
 
-Checkout our [wiki](https://github.com/ZzAntares/ProxmoxVE/wiki).
+Checkout our [wiki](https://github.com/triopsi/ProxmoxVE/wiki).
 
 
 Docs
@@ -143,7 +134,7 @@ Consult the [ProxmoxVE API] article at the [Proxmox wiki].
 
 **I feel you're hiding some cool tricks! I need more docs!**
 
-See the project's [wiki](https://github.com/ZzAntares/ProxmoxVE/wiki) for a more
+See the project's [wiki](https://github.com/triopsi/ProxmoxVE/wiki) for a more
 detailed documentation, it's all in there I swear it... I think.
 
 
@@ -151,17 +142,3 @@ License
 -------
 
 This project is released under the MIT License. See the bundled [LICENSE] file for details.
-
-
-Want to contribute?
---------------------
-
-Thank you! Take a look at the [CONTRIBUTING], you could easily set up a development environment to get you started in no time!
-
-
-[LICENSE]:./LICENSE
-[CONTRIBUTING]:./CONTRIBUTING.md
-[PVE2 API Documentation]:http://pve.proxmox.com/pve-docs/api-viewer/index.html
-[ProxmoxVE API]:http://pve.proxmox.com/wiki/Proxmox_VE_API
-[Proxmox wiki]:http://pve.proxmox.com/wiki
-[Composer]:https://getcomposer.org/

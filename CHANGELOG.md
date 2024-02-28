@@ -1,3 +1,9 @@
+v5.0.0
+------
+
+- PHP 8 required.
+- Update Readme
+
 v3.0.0
 ------
 

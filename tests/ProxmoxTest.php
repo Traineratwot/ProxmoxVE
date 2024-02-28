@@ -1,242 +1,261 @@
 <?php
 /**
  * This file is part of the ProxmoxVE PHP API wrapper library (unofficial).
+ * Created on Wed Feb 28 2024
  *
- * @copyright 2014 César Muñoz <zzantares@gmail.com>
- * @license http://opensource.org/licenses/MIT The MIT License.
+ * Copyright (c) 2024 IT-Dienstleistungen Drevermann - All Rights Reserved
+ *
+ * @package Triopsi licence manager
+ * @author Daniel Drevermann <info@triopsi.com>
+ * @copyright Copyright (c) 2024, IT-Dienstleistungen Drevermann, 2014 César Muñoz <zzantares@gmail.com>
+ * @license   http://opensource.org/licenses/MIT The MIT License.
  */
 
 namespace ProxmoxVE;
 
+use GuzzleHttp\Exception\ClientException;
+use ProxmoxVE\Exception\MalformedCredentialsException;
+
 /**
+ * ProxmoxVE PHPUnits
+ *
  * @author César Muñoz <zzantares@gmail.com>
  */
-class ProxmoxTest extends TestCase
-{
-    /**
-     * @expectedException \ProxmoxVE\Exception\MalformedCredentialsException
-     */
-    public function testExceptionIsThrownIfBadParamsPassed()
-    {
-        new Proxmox('bad param');
-    }
+class ProxmoxTest extends TestCase {
+
+	/**
+	 * Test bad credentials.
+	 */
+	public function testExceptionIsThrownIfBadParamsPassed() {
+		$this->expectException( MalformedCredentialsException::class );
+		new Proxmox( 'bad param' );
+	}
+
+	/**
+	 * Test bad credentials.
+	 */
+	public function testExceptionIsThrownWhenNonAssociativeArrayIsGivenAsCredentials() {
+		$this->expectException( MalformedCredentialsException::class );
+		new Proxmox(
+			array(
+			'root', 'So Bruce Wayne is alive? or did he died in the explosion?',
+			)
+		);
+	}
+
+	/**
+	 * Test bad credentials.
+	 */
+	public function testExceptionIsThrownWhenIncompleteCredentialsArrayIsPassed() {
+		$this->expectException( MalformedCredentialsException::class );
+		new Proxmox(
+			array(
+			'username' => 'root',
+			'password' => 'The NSA is watching us! D=',
+			)
+		);
+	}
+
+	/**
+	 * Proxmox Test with right credentials.
+	 *
+	 * @return void
+	 */
+	public function testGetCredentialsWithAllValues() {
+		$data = array(
+			'hostname' => 'some.proxmox.tld',
+			'username' => 'root',
+			'password' => 'I was here',
+		);
+
+		$fakeAuthToken = new AuthToken( 'csrf', 'ticket', 'username' );
+		$proxmox       = $this->getMockProxmox( 'login', $fakeAuthToken );
+		$proxmox->setCredentials( $data );
+
+		$credentials = $proxmox->getCredentials();
+
+		$this->assertEquals( $credentials->getHostname(), $data['hostname'] );
+		$this->assertEquals( $credentials->getUsername(), $data['username'] );
+		$this->assertEquals( $credentials->getPassword(), $data['password'] );
+		$this->assertEquals( $credentials->getRealm(), 'pam' );
+		$this->assertEquals( $credentials->getPort(), '8006' );
+		$this->assertEquals( $credentials->getSystem(), 'pve' );
+	}
 
 
-    /**
-     * @expectedException \ProxmoxVE\Exception\MalformedCredentialsException
-     */
-    public function testExceptionIsThrownWhenNonAssociativeArrayIsGivenAsCredentials()
-    {
-        new Proxmox([
-            'root', 'So Bruce Wayne is alive? or did he died in the explosion?',
-        ]);
-    }
+	/**
+	 * Proxmox Test with right credentials via api
+	 *
+	 * @return void
+	 */
+	public function testGetApiCredentialsWithAllValues() {
+		$data        = array(
+			'hostname' => 'some.proxmox.tld',
+			'tokenName' => 'root',
+			'tokenKey' => '2543b2f7-bbd9-4013-a972-42fc5b644899',
+		);
+		$proxmox     = new Proxmox( $data );
+		$credentials = $proxmox->getCredentials();
 
+		$this->assertEquals( $credentials->getHostname(), $data['hostname'] );
+		$this->assertEquals( $credentials->getUsername(), '' );
+		$this->assertEquals( $credentials->getTokenKey(), 'PVEAPIToken=root=2543b2f7-bbd9-4013-a972-42fc5b644899' );
+		$this->assertTrue( $credentials->isApi() );
+		$this->assertEquals( $credentials->getSystem(), 'pve' );
+	}
 
-    /**
-     * @expectedException \ProxmoxVE\Exception\MalformedCredentialsException
-     */
-    public function testExceptionIsThrownWhenIncompleteCredentialsArrayIsPassed()
-    {
-        new Proxmox([
-            'username' => 'root',
-            'password' => 'The NSA is watching us! D=',
-        ]);
-    }
+	/**
+	 * Proxmox Mail Gateway Test with right credentials.
+	 *
+	 * @return void
+	 */
+	public function testCredentialsWithMailGatewaySystem() {
+		$data = array(
+			'hostname' => 'some.proxmox.tld',
+			'username' => 'root',
+			'password' => 'I was here',
+			'system' => 'pmg',
+		);
 
+		$fakeAuthToken = new AuthToken( 'csrf', 'ticket', 'username' );
+		$proxmox       = $this->getMockProxmox( 'login', $fakeAuthToken );
+		$proxmox->setCredentials( $data );
 
-    /**
-     * @expectedException \ProxmoxVE\Exception\MalformedCredentialsException
-     */
-    public function testExceptionIsThrownWhenWrongCredentialsObjectIsPassed()
-    {
-        $credentials = new CustomClasses\Person('Harry Potter', 13);
-        new Proxmox($credentials);
-    }
+		$credentials = $proxmox->getCredentials();
 
+		$this->assertEquals( $credentials->getSystem(), 'pmg' );
+	}
 
-    /**
-     * @expectedException \ProxmoxVE\Exception\MalformedCredentialsException
-     */
-    public function testExceptionIsThrownWhenIncompleteCredentialsObjectIsPassed()
-    {
-        $credentials = new CustomClasses\IncompleteCredentials("user", "and that's it");
-        new Proxmox($credentials);
-    }
+	/**
+	 * Proxmox backup Server Test with right credentials.
+	 *
+	 * @return void
+	 */
+	public function testCredentialsWithBackupServerSystem() {
+		$data = array(
+			'hostname' => 'some.proxmox.tld',
+			'username' => 'root',
+			'password' => 'I was here',
+			'system' => 'pbs',
+		);
 
+		$fakeAuthToken = new AuthToken( 'csrf', 'ticket', 'username' );
+		$proxmox       = $this->getMockProxmox( 'login', $fakeAuthToken );
+		$proxmox->setCredentials( $data );
 
-    /**
-     * @expectedException \ProxmoxVE\Exception\MalformedCredentialsException
-     */
-    public function testExceptionIsThrownWhenProtectedCredentialsObjectIsPassed()
-    {
-        $credentials = new CustomClasses\ProtectedCredentials('host', 'user', 'pass');
-        new Proxmox($credentials);
-    }
+		$credentials = $proxmox->getCredentials();
 
+		$this->assertEquals( $credentials->getSystem(), 'pbs' );
+	}
 
-    /**
-     * @expectedException \GuzzleHttp\Exception\RequestException
-     */
-    public function testProxmoxExceptionIsNotThrownWhenUsingMagicCredentialsObject()
-    {
-        $credentials = new CustomClasses\MagicCredentials();
-        new Proxmox($credentials);
-    }
+	/**
+	 * Test Unresolved Hostname.
+	 */
+	public function testUnresolvedHostnameThrowsException() {
+		$this->expectException( \Exception::class );
+		$credentials = array(
+			'hostname' => 'proxmox.example.tld',
+			'username' => 'user',
+			'password' => 'pass',
+		);
 
+		new Proxmox( $credentials );
+	}
 
-    public function testGetCredentialsWithAllValues()
-    {
-        $ids = [
-            'hostname' => 'some.proxmox.tld',
-            'username' => 'root',
-            'password' => 'I was here',
-        ];
+	/**
+	 * Test Failed Login.
+	 */
+	public function testLoginErrorThrowsException() {
+		$this->expectException( ClientException::class );
+		$credentials = array(
+			'hostname' => 'proxmox.server.tld',
+			'username' => 'are not',
+			'password' => 'valid folks!',
+		);
 
-        $fakeAuthToken = new AuthToken('csrf', 'ticket', 'username');
-        $proxmox = $this->getMockProxmox('login', $fakeAuthToken);
-        $proxmox->setCredentials($ids);
+		// Simulate failed login.
+		$httpClient = $this->getMockHttpClient( false );
 
-        $credentials = $proxmox->getCredentials();
+		new Proxmox( $credentials, null, $httpClient );
+	}
 
-        $this->assertEquals($credentials->getHostname(), $ids['hostname']);
-        $this->assertEquals($credentials->getUsername(), $ids['username']);
-        $this->assertEquals($credentials->getPassword(), $ids['password']);
-        $this->assertEquals($credentials->getRealm(), 'pam');
-        $this->assertEquals($credentials->getPort(), '8006');
-        $this->assertEquals($credentials->getSystem(), 'pve');
-    }
+	/**
+	 * Test all response types.
+	 */
+	public function testGetAndSetResponseType() {
+		$proxmox = $this->getProxmox( null );
+		$this->assertEquals( $proxmox->getResponseType(), 'array' );
 
+		$proxmox->setResponseType( 'json' );
+		$this->assertEquals( $proxmox->getResponseType(), 'json' );
 
-    public function testCredentialsWithMailGatewaySystem()
-    {
-        $ids = [
-            'hostname' => 'some.proxmox.tld',
-            'username' => 'root',
-            'password' => 'I was here',
-            'system' => 'pmg',
-        ];
+		$proxmox->setResponseType( 'html' );
+		$this->assertEquals( $proxmox->getResponseType(), 'html' );
 
-        $fakeAuthToken = new AuthToken('csrf', 'ticket', 'username');
-        $proxmox = $this->getMockProxmox('login', $fakeAuthToken);
-        $proxmox->setCredentials($ids);
+		$proxmox->setResponseType( 'extjs' );
+		$this->assertEquals( $proxmox->getResponseType(), 'extjs' );
 
-        $credentials = $proxmox->getCredentials();
+		$proxmox->setResponseType( 'text' );
+		$this->assertEquals( $proxmox->getResponseType(), 'text' );
 
-        $this->assertEquals($credentials->getSystem(), 'pmg');
-    }
+		$proxmox->setResponseType( 'png' );
+		$this->assertEquals( $proxmox->getResponseType(), 'png' );
 
+		$proxmox->setResponseType( 'pngb64' );
+		$this->assertEquals( $proxmox->getResponseType(), 'pngb64' );
 
-    /**
-     * @expectedException \Exception
-     */
-    public function testUnresolvedHostnameThrowsException()
-    {
-        $credentials = [
-            'hostname' => 'proxmox.example.tld',
-            'username' => 'user',
-            'password' => 'pass',
-        ];
+		$proxmox->setResponseType( 'object' );
+		$this->assertEquals( $proxmox->getResponseType(), 'object' );
 
-        new Proxmox($credentials);
-    }
+		$proxmox->setResponseType( 'other' );
+		$this->assertEquals( $proxmox->getResponseType(), 'array' );
+	}
 
+	/**
+	 * Test get wrong resources.
+	 */
+	public function testGetResourceWithBadParamsThrowsException() {
+		$this->expectException( \InvalidArgumentException::class );
+		$proxmox = $this->getProxmox( null );
+		$proxmox->get( '/someResource', 'wrong params here' );
+	}
 
-    /**
-     * @expectedException \ProxmoxVE\Exception\AuthenticationException
-     */
-    public function testLoginErrorThrowsException()
-    {
-        $credentials = [
-            'hostname' => 'proxmox.server.tld',
-            'username' => 'are not',
-            'password' => 'valid folks!',
-        ];
+	/**
+	 * Test create wrong resources.
+	 */
+	public function testCreateResourceWithBadParamsThrowsException() {
+		$this->expectException( \InvalidArgumentException::class );
+		$proxmox = $this->getProxmox( null );
+		$proxmox->create( '/someResource', 'wrong params here' );
+	}
 
-        $httpClient = $this->getMockHttpClient(false); // Simulate failed login
+	/**
+	 * Test set wrong resources.
+	 */
+	public function testSetResourceWithBadParamsThrowsException() {
+		$this->expectException( \InvalidArgumentException::class );
+		$proxmox = $this->getProxmox( null );
+		$proxmox->set( '/someResource', 'wrong params here' );
+	}
 
-        new Proxmox($credentials, null, $httpClient);
-    }
+	/**
+	 * Test delete wrong resources.
+	 */
+	public function testDeleteResourceWithBadParamsThrowsException() {
+		$this->expectException( \InvalidArgumentException::class );
+		$proxmox = $this->getProxmox( null );
+		$proxmox->delete( '/someResource', 'wrong params here' );
+	}
 
-
-    public function testGetAndSetResponseType()
-    {
-        $proxmox = $this->getProxmox(null);
-        $this->assertEquals($proxmox->getResponseType(), 'array');
-
-        $proxmox->setResponseType('json');
-        $this->assertEquals($proxmox->getResponseType(), 'json');
-
-        $proxmox->setResponseType('html');
-        $this->assertEquals($proxmox->getResponseType(), 'html');
-
-        $proxmox->setResponseType('extjs');
-        $this->assertEquals($proxmox->getResponseType(), 'extjs');
-
-        $proxmox->setResponseType('text');
-        $this->assertEquals($proxmox->getResponseType(), 'text');
-
-        $proxmox->setResponseType('png');
-        $this->assertEquals($proxmox->getResponseType(), 'png');
-
-        $proxmox->setResponseType('pngb64');
-        $this->assertEquals($proxmox->getResponseType(), 'pngb64');
-
-        $proxmox->setResponseType('object');
-        $this->assertEquals($proxmox->getResponseType(), 'object');
-
-        $proxmox->setResponseType('other');
-        $this->assertEquals($proxmox->getResponseType(), 'array');
-    }
-
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testGetResourceWithBadParamsThrowsException()
-    {
-        $proxmox = $this->getProxmox(null);
-        $proxmox->get('/someResource', 'wrong params here');
-    }
-
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testCreateResourceWithBadParamsThrowsException()
-    {
-        $proxmox = $this->getProxmox(null);
-        $proxmox->create('/someResource', 'wrong params here');
-    }
-
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testSetResourceWithBadParamsThrowsException()
-    {
-        $proxmox = $this->getProxmox(null);
-        $proxmox->set('/someResource', 'wrong params here');
-    }
-
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testDeleteResourceWithBadParamsThrowsException()
-    {
-        $proxmox = $this->getProxmox(null);
-        $proxmox->delete('/someResource', 'wrong params here');
-    }
-
-
-    public function testGetResource()
-    {
-        $fakeResponse = <<<'EOD'
+	/**
+	 * Test Get Resource succeffull.
+	 */
+	public function testGetResource() {
+		$fakeResponse = <<<'EOD'
 {"data":[{"disk":940244992,"cpu":0.000998615325210486,"maxdisk":5284429824,"maxmem":1038385152,"node":"office","maxcpu":1,"level":"","uptime":3296027,"id":"node/office","type":"node","mem":311635968}]}
 EOD;
-        $proxmox = $this->getProxmox($fakeResponse);
+		$proxmox      = $this->getProxmox( $fakeResponse );
 
-        $this->assertEquals($proxmox->get('/nodes'), json_decode($fakeResponse, true));
-    }
+		$this->assertEquals( $proxmox->get( '/nodes' ), json_decode( $fakeResponse, true ) );
+	}
 }

@@ -1,9 +1,14 @@
 <?php
 /**
  * This file is part of the ProxmoxVE PHP API wrapper library (unofficial).
+ * Created on Wed Feb 28 2024
  *
- * @copyright 2014 César Muñoz <zzantares@gmail.com>
- * @license http://opensource.org/licenses/MIT The MIT License.
+ * Copyright (c) 2024 IT-Dienstleistungen Drevermann - All Rights Reserved
+ *
+ * @package Triopsi licence manager
+ * @author Daniel Drevermann <info@triopsi.com>
+ * @copyright Copyright (c) 2024, IT-Dienstleistungen Drevermann, 2014 César Muñoz <zzantares@gmail.com>
+ * @license   http://opensource.org/licenses/MIT The MIT License.
  */
 
 namespace ProxmoxVE;
@@ -12,68 +17,89 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
+use PHPUnit\Framework\TestCase as FrameworkTestCase;
 
 /**
+ * ProxmoxVE PHPUnits
+ *
  * @author César Muñoz <zzantares@gmail.com>
  */
-class TestCase extends \PHPUnit_Framework_TestCase
-{
-    protected function getMockProxmox($method = null, $return = null)
-    {
-        if ($method) {
-            $proxmox = $this->getMockBuilder('ProxmoxVE\Proxmox')
-                            ->setMethods(array($method))
-                            ->disableOriginalConstructor()
-                            ->getMock();
+class TestCase extends FrameworkTestCase {
 
-            $proxmox->expects($this->any())
-                    ->method($method)
-                    ->will($this->returnValue($return));
+	/**
+	 * Get Proxmox Mock.
+	 *
+	 * @param  string $method method Name.
+	 * @param  mixed  $return Return stream.
+	 * @return \PHPUnit\Framework\MockObject\MockObject
+	 */
+	protected function getMockProxmox( $method = null, $return = null) {
+		if ($method) {
+			$proxmox = $this->getMockBuilder( 'ProxmoxVE\Proxmox' )
+				->onlyMethods( array($method) )
+				->disableOriginalConstructor()
+				->getMock();
 
-        } else {
-            $proxmox = $this->getMockBuilder('ProxmoxVE\Proxmox')
-                            ->disableOriginalConstructor()
-                            ->getMock();
-        }
+			$proxmox->expects( $this->any() )
+				->method( $method )
+				->will( $this->returnValue( $return ) );
+		} else {
+			$proxmox = $this->getMockBuilder( 'ProxmoxVE\Proxmox' )
+				->disableOriginalConstructor()
+				->getMock();
+		}
 
-        return $proxmox;
-    }
-
-
-    protected function getProxmox($response)
-    {
-        $httpClient = $this->getMockHttpClient(true, $response);
-
-        $credentials = [
-            'hostname' => 'my.proxmox.tld',
-            'username' => 'root',
-            'password' => 'toor',
-        ];
-
-        return new Proxmox($credentials, null, $httpClient);
-    }
+		return $proxmox;
+	}
 
 
-    protected function getMockHttpClient($successfulLogin, $response = null)
-    {
-        if ($successfulLogin) {
-            $stream = \GuzzleHttp\Psr7\stream_for('{"data":{"CSRFPreventionToken":"csrf","ticket":"ticket","username":"random"}}');
-            $login = new Response(202, ['Content-Length' => 0], $stream);
-        } else {
-            $login = new Response(400, ['Content-Length' => 0]);
-        }
+	/**
+	 * Get the Proxmox Class.
+	 *
+	 * @param resource|string|int|float|bool|StreamInterface|callable|\Iterator|null $response Response Mock.
+	 * @return \ProxmoxVE\Proxmox
+	 */
+	protected function getProxmox( $response ) {
+		$httpClient = $this->getMockHttpClient( true, $response );
 
-        $responseStream = \GuzzleHttp\Psr7\stream_for("{$response}");
+		$credentials = array(
+			'hostname' => 'my.proxmox.tld',
+			'username' => 'root',
+			'password' => 'toor',
+		);
 
-        $mock = new MockHandler([
-            $login,
-            new Response(202, ['Content-Length' => 0], $responseStream),
-        ]);
+		return new Proxmox( $credentials, null, $httpClient );
+	}
 
 
-        $handler = HandlerStack::create($mock);
-        $httpClient = new Client(['handler' => $handler]);
+	/**
+	 * Mock HTTP Client.
+	 *
+	 * @param boolean                                                                $successfulLogin Success or False.
+	 * @param resource|string|int|float|bool|StreamInterface|callable|\Iterator|null $response Response Mock.
+	 * @return \GuzzleHttp\Client
+	 */
+	protected function getMockHttpClient( $successfulLogin, $response = null) {
+		if ($successfulLogin) {
+			$stream = Utils::streamFor( '{"data":{"CSRFPreventionToken":"csrf","ticket":"ticket","username":"random"}}' );
+			$login  = new Response( 202, array('Content-Length' => 0), $stream );
+		} else {
+			$login = new Response( 400, array('Content-Length' => 0) );
+		}
 
-        return $httpClient;
-    }
+		$responseStream = Utils::streamFor( "{$response}" );
+
+		$mock = new MockHandler(
+			array(
+			$login,
+			new Response( 202, array('Content-Length' => 0), $responseStream ),
+			)
+		);
+
+		$handler    = HandlerStack::create( $mock );
+		$httpClient = new Client( array('handler' => $handler) );
+
+		return $httpClient;
+	}
 }
