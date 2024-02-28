@@ -232,7 +232,7 @@ class Proxmox {
 			throw new AuthenticationException( $error );
 		}
 
-        // Response the AuthToken.
+		// Response the AuthToken.
 		return new AuthToken(
 			$json['data']['CSRFPreventionToken'],
 			$json['data']['ticket'],
