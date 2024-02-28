@@ -1,3 +1,13 @@
+v5.0.2
+------
+
+- Composer Fix
+
+v5.0.1
+------
+
+- Hotfix Header Parameter Fix
+
 v5.0.0
 ------
 
