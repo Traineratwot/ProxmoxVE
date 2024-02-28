@@ -32,7 +32,7 @@ $ composer install --no-dev
 ```
 
 
-Usage
+Usage for login:
 -----
 
 ```php
@@ -68,6 +68,32 @@ $allNodes = $proxmox->get('/nodes');
 print_r($allNodes);
 ```
 
+Usage with api token:
+-----
+
+```php
+<?php
+
+// Require the autoloader
+require_once 'vendor/autoload.php';
+
+// Use the library namespace
+use ProxmoxVE\Proxmox;
+
+// Create your credentials array
+$credentials = [
+    'hostname' => 'proxmox.server.com',  // Also can be an IP
+    'tokenName' => 'root@pam!web', // Format: USER@REALM!TOKENID. 
+    'tokenKey' => '2543b2f7-bbd9-4013-a972-42fc5b644899', // The UUID.
+];
+
+// Then simply pass your credentials when creating the API client object.
+$proxmox = new Proxmox($credentials);
+
+$allNodes = $proxmox->get('/nodes');
+
+print_r($allNodes);
+```
 
 Sample output:
 

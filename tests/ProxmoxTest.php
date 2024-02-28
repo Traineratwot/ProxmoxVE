@@ -91,7 +91,7 @@ class ProxmoxTest extends TestCase {
 	public function testGetApiCredentialsWithAllValues() {
 		$data        = array(
 			'hostname' => 'some.proxmox.tld',
-			'tokenName' => 'root',
+			'tokenName' => 'root@pam!web',
 			'tokenKey' => '2543b2f7-bbd9-4013-a972-42fc5b644899',
 		);
 		$proxmox     = new Proxmox( $data );
@@ -99,7 +99,7 @@ class ProxmoxTest extends TestCase {
 
 		$this->assertEquals( $credentials->getHostname(), $data['hostname'] );
 		$this->assertEquals( $credentials->getUsername(), '' );
-		$this->assertEquals( $credentials->getTokenKey(), 'PVEAPIToken=root=2543b2f7-bbd9-4013-a972-42fc5b644899' );
+		$this->assertEquals( $credentials->getTokenKey(), 'PVEAPIToken=root@pam!web=2543b2f7-bbd9-4013-a972-42fc5b644899' );
 		$this->assertTrue( $credentials->isApi() );
 		$this->assertEquals( $credentials->getSystem(), 'pve' );
 	}

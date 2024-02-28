@@ -1,8 +1,5 @@
 name: test code phpunit
-on:
-  pull_request:
-    branches:
-      - master
+on: [push]
 jobs:
   build-test:
     runs-on: ubuntu-latest
