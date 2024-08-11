@@ -13,7 +13,7 @@ Recommended installation is using [Composer], if you do not have [Composer] what
 In the root of your project execute the following:
 
 ```sh
-$ composer require triopsi/proxmoxve ~5.0
+$ composer require Traineratwot/proxmoxve ~5.0
 ```
 
 Or add this to your `composer.json` file:
@@ -21,7 +21,7 @@ Or add this to your `composer.json` file:
 ```json
 {
     "require": {
-        "triopsi/proxmoxve": "~5.0"
+        "Traineratwot/proxmoxve": "~5.0"
     }
 }
 ```
@@ -142,7 +142,7 @@ $credentials = [
 Want to know more nifty tricks?
 -------------------------------
 
-Checkout our [wiki](https://github.com/triopsi/ProxmoxVE/wiki).
+Checkout our [wiki](https://github.com/Traineratwot/ProxmoxVE/wiki).
 
 
 Docs
@@ -160,7 +160,7 @@ Consult the [ProxmoxVE API] article at the [Proxmox wiki].
 
 **I feel you're hiding some cool tricks! I need more docs!**
 
-See the project's [wiki](https://github.com/triopsi/ProxmoxVE/wiki) for a more
+See the project's [wiki](https://github.com/Traineratwot/ProxmoxVE/wiki) for a more
 detailed documentation, it's all in there I swear it... I think.
 
 
